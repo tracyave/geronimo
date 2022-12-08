@@ -1,5 +1,4 @@
-{
-    "ddd": "namespace zh.Controllers
+namespace zh.Controllers
              {
         [ApiController]
         public class AccountController : ControllerBase
@@ -88,5 +87,3 @@
             }
         }
     }
-    "
-}
