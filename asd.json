@@ -1,0 +1,92 @@
+{
+    "ddd": "namespace zh.Controllers
+             {
+        [ApiController]
+        public class AccountController : ControllerBase
+        {
+    
+        
+            [HttpGet]
+            [Route (`orders/`)]
+            public IActionResult getAcc()
+            {
+                Models.Zh3Context context = new Models.Zh3Context();
+                var accs = from x in context.Orders
+                           select x;
+                return new JsonResult(accs);
+            }
+    
+        
+            [HttpGet]
+            [Route (`orders/{id}`)]
+            public IActionResult getAccByOrderId(int id) {
+                Models.Zh3Context context = new Models.Zh3Context();
+                var order = from x in context.Orders
+                          where x.OrderId ==  id
+                          select x;
+                if(order == null)
+                {
+                    return BadRequest(`Nincs ilyen sorszámú rendelés!`);
+                }
+                return new JsonResult(order.FirstOrDefault());
+            }
+    
+        
+            [HttpDelete]
+            [Route (`orders/{id}`)]
+            public IActionResult deleteAcc(int id)
+            {
+                Models.Zh3Context context = new Models.Zh3Context();
+                var order = from x in context.Orders
+                           where x.OrderId == id
+                           select x;
+                if(order == null)
+                {
+                    return BadRequest(`Nincs ilyen sorszámú rendelés!`);
+                }
+                context.Orders.Remove(order.FirstOrDefault())  ;
+                context.SaveChanges();
+                return Ok(`Order deleted!`);
+            }
+    
+        
+    
+            [HttpPost]
+            [Route (`orders/`)]
+            public IActionResult addNewAcc([FromBody] Order newOrder)
+            {
+                Models.Zh3Context context = new Models.Zh3Context();
+                context.Orders.Add(newOrder);
+                context.SaveChanges();
+                return Ok(`Order added!`);
+            }
+    
+        
+    
+            [HttpPut]
+            [Route (`orders/{id}`)]
+            public IActionResult updateOrder(int id, [FromBody] Models.Order updatedOrder)
+            {
+                Models.Zh3Context context = new Models.Zh3Context();
+                var order = (from x in context.Orders
+                            where x.OrderId == id
+                            select x).FirstOrDefault();
+                if(order == null) return BadRequest(`Order not found!`);
+               
+                order.OrderId = updatedOrder.OrderId;
+                order.FullName= updatedOrder.FullName;
+                order.Avatar = updatedOrder.Avatar;
+                order.Email = updatedOrder.Email;
+                order.Country = updatedOrder.Country;
+                order.Address = updatedOrder.Address;
+                order.Date= updatedOrder.Date;
+                order.Creditcard= updatedOrder.Creditcard;
+                order.Amount= updatedOrder.Amount;
+    
+                context.SaveChanges();
+                return Ok(`Order updated!`);
+            }
+        }
+    }
+    "
+}
