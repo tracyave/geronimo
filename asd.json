@@ -1,89 +1,242 @@
-namespace zh.Controllers
-             {
-        [ApiController]
-        public class AccountController : ControllerBase
-        {
+namespace zh.Controllers {
+  [ ApiController ]
+  public class
+  AccountController: ControllerBase
+  {
+
+
+    [ HttpGet ]
+    [ Route (`orders/`) ]
+    public IActionResult
+    getAcc() {
+      Models.Zh3Context context
+      = new
+      Models.Zh3Context(); var
+      accs =
+      from x
+      in context.Orders
+      select x;
+      return new
+      JsonResult(accs);
+    }
+
+
+    [ HttpGet ]
+    [
+      Route
+      (`orders/
+      { id }
+      `)
+    ]
+    public IActionResult
+    getAccByOrderId(int id)
+    {
+      Models.Zh3Context context
+      = new
+      Models.Zh3Context(); var
+      order =
+      from x
+      in context.Orders
+      where x.OrderId
+      == id
+      select x;
+      if(order ==
+      null) {
+        return BadRequest(`Nincs
+        ilyen sorszámú
+        rendelés!`);
+      }
+      return new
+      JsonResult(order.FirstOrDefault());
+    }
+
+
+    [ HttpDelete ]
+    [
+      Route
+      (`orders/
+      { id }
+      `)
+    ]
+    public IActionResult
+    deleteAcc(int id)
+    {
+      Models.Zh3Context context
+      = new
+      Models.Zh3Context(); var
+      order =
+      from x
+      in context.Orders
+      where x.OrderId
+      == id
+      select x;
+      if(order ==
+      null) {
+        return BadRequest(`Nincs
+        ilyen sorszámú
+        rendelés!`);
+      }
+      context.Orders.Remove(order.FirstOrDefault()) ;
+      context.SaveChanges(); return
+      Ok(`Order deleted!`);
+    }
+
+
+
+    [ HttpPost ]
+    [ Route (`orders/`) ]
+    public IActionResult
+    addNewAcc( [ FromBody ]
+    Order newOrder)
+    {
+      Models.Zh3Context context
+      = new
+      Models.Zh3Context(); context.Orders.Add(newOrder);
+      context.SaveChanges(); return
+      Ok(`Order added!`);
+    }
+
+
+
+    [ HttpPut ]
+    [
+      Route
+      (`orders/
+      { id }
+      `)
+    ]
+    public IActionResult
+    updateOrder(int id,
+    [ FromBody ]
+    Models.Order updatedOrder)
+    {
+      Models.Zh3Context context
+      = new
+      Models.Zh3Context(); var
+      order =
+      (from x
+      in context.Orders
+      where x.OrderId
+      == id
+      select x).FirstOrDefault();
+      if(order ==
+      null) return
+      BadRequest(`Order not
+      found!`); order.OrderId
+      = updatedOrder.OrderId;
+      order.FullName= updatedOrder.FullName;
+      order.Avatar =
+      updatedOrder.Avatar; order.Email
+      = updatedOrder.Email;
+      order.Country =
+      updatedOrder.Country; order.Address
+      = updatedOrder.Address;
+      order.Date= updatedOrder.Date;
+      order.Creditcard= updatedOrder.Creditcard;
+      order.Amount= updatedOrder.Amount;
+
+      context.SaveChanges(); return
+      Ok(`Order updated!`);
+    }
+  }
+} --------------------------------
+
+const orders = document.getElementById("orders");
+const form = document.getElementById("form");
+const search = document.getElementById("search");
+let deleteButtons;
+orders.innerHTML = `<p class="messages loading">Adatok betöltése...</p>`;
+
+const loadOrders = async function () {
+    const data = await fetch(`orders/`);
+    const res = await data.json();
+    if (!data.ok) {
+        orders.innerHTML = data.status;
+        return;
+    }
+    render(res);
+}
+
+const loadOrdersById = async function (id) {
+    if (!id ) {
+        loadOrders();
+        return;
+    }
+    if (isNaN(id)) {
+        orders.innerHTML = `<p class="messages loading">Érvénytelen id (${id}).</p>`;
+        return
+    }
+    const data = await fetch(`orders/${id}`);
+    const res = await data.json();
+    if (!res) {
+        orders.innerHTML = `<p class="messages loading">Rendelés nem található ${id} id-vel.</p>`;
+        return;
+    }
+    renderOne(res);
+}
+
+const render = function (data) {
+    let markup = ``;
+    for (let order of data) {
+      markup += `<div class="order" id="${order.orderId}">
+                <div id="id">${order.orderId}</div>
+                <img src="${order.avatar}" class="avatar"/>
+                <div class="fullName">${order.fullName}</div>
+                <div class="email">${order.email}</div>
+                <div class="country">${order.country}</div>
+                <div class="address">${order.address}</div>
+                <div class="date">${order.date}</div>
+                <div class="creditcart">${order.creditcard}</div>
+                <div class="amount">${order.amount}</div>
+                <div class="deleteButton">Törlés</div>
+             </div>`
+    }
+    orders.innerHTML = "";
+    orders.insertAdjacentHTML('afterbegin', markup);
+    deleteButtons = document.querySelectorAll(".deleteButton");
     
-        
-            [HttpGet]
-            [Route (`orders/`)]
-            public IActionResult getAcc()
-            {
-                Models.Zh3Context context = new Models.Zh3Context();
-                var accs = from x in context.Orders
-                           select x;
-                return new JsonResult(accs);
-            }
-    
-        
-            [HttpGet]
-            [Route (`orders/{id}`)]
-            public IActionResult getAccByOrderId(int id) {
-                Models.Zh3Context context = new Models.Zh3Context();
-                var order = from x in context.Orders
-                          where x.OrderId ==  id
-                          select x;
-                if(order == null)
-                {
-                    return BadRequest(`Nincs ilyen sorszámú rendelés!`);
-                }
-                return new JsonResult(order.FirstOrDefault());
-            }
-    
-        
-            [HttpDelete]
-            [Route (`orders/{id}`)]
-            public IActionResult deleteAcc(int id)
-            {
-                Models.Zh3Context context = new Models.Zh3Context();
-                var order = from x in context.Orders
-                           where x.OrderId == id
-                           select x;
-                if(order == null)
-                {
-                    return BadRequest(`Nincs ilyen sorszámú rendelés!`);
-                }
-                context.Orders.Remove(order.FirstOrDefault())  ;
-                context.SaveChanges();
-                return Ok(`Order deleted!`);
-            }
-    
-        
-    
-            [HttpPost]
-            [Route (`orders/`)]
-            public IActionResult addNewAcc([FromBody] Order newOrder)
-            {
-                Models.Zh3Context context = new Models.Zh3Context();
-                context.Orders.Add(newOrder);
-                context.SaveChanges();
-                return Ok(`Order added!`);
-            }
-    
-        
-    
-            [HttpPut]
-            [Route (`orders/{id}`)]
-            public IActionResult updateOrder(int id, [FromBody] Models.Order updatedOrder)
-            {
-                Models.Zh3Context context = new Models.Zh3Context();
-                var order = (from x in context.Orders
-                            where x.OrderId == id
-                            select x).FirstOrDefault();
-                if(order == null) return BadRequest(`Order not found!`);
-               
-                order.OrderId = updatedOrder.OrderId;
-                order.FullName= updatedOrder.FullName;
-                order.Avatar = updatedOrder.Avatar;
-                order.Email = updatedOrder.Email;
-                order.Country = updatedOrder.Country;
-                order.Address = updatedOrder.Address;
-                order.Date= updatedOrder.Date;
-                order.Creditcard= updatedOrder.Creditcard;
-                order.Amount= updatedOrder.Amount;
-    
-                context.SaveChanges();
-                return Ok(`Order updated!`);
-            }
+    for (let button of deleteButtons) {
+        button.onclick = function (e) {
+            orders.innerHTML = `<p class="messages loading">Rendelés törlése...</p>`;
+            setTimeout(function () {
+                deleteOrder(e.target.parentElement.id);
+            }, 2000)
         }
     }
+}
+
+const renderOne = function (order) {
+    let markup = `<div class="order" id="${order.orderId}">
+                <div id="id">${order.orderId}</div>
+                <img src="${order.avatar}" class="avatar"/>
+                <div class="fullName">${order.fullName}</div>
+                <div class="email">${order.email}</div>
+                <div class="country">${order.country}</div>
+                <div class="address">${order.address}</div>
+                <div class="date">${order.date}</div>
+                <div class="creditcart">${order.creditcard}</div>
+                <div class="amount">${order.amount}</div>
+                <div class="deleteButton">Törlés</div>
+             </div>`
+    orders.innerHTML = "";
+    orders.insertAdjacentHTML('afterbegin', markup);
+    deleteButtons = document.querySelector(".deleteButton");
+    deleteButtons.onclick = function (e) {
+        orders.innerHTML = `<p class="messages loading">Rendelés törlése...</p>`;
+        deleteOrder(e.target.parentElement.id);
+    }
+}
+
+const deleteOrder = async function (id) {
+    const req = await fetch(`orders/${id}`, { method: 'DELETE' })
+    if (req.status === 200) {
+        orders.innerHTML = `<p class="deleted">Rendelés törölve!</p>`
+        setTimeout(loadOrders, 3000);
+        search.value = "";
+    }
+}
+
+window.onload = loadOrders();
+search.onkeyup = function () {
+    loadOrdersById(search.value);
+}
